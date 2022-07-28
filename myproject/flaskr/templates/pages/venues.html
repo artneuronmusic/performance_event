@@ -1,0 +1,65 @@
+{% extends 'layouts/main.html' %}
+{% block title %}Fyyur | Venues{% endblock %}
+{% block content %}
+{% for area in areas %}
+<style>
+	.hidden {
+        display: none;
+      }
+	li button {
+		-webkit-appearance: none;
+        border: none;
+        outline: none;
+        color: red;
+        float: right;
+        cursor: pointer;
+        font-size: 16px;
+		
+	}
+</style>
+<h3>{{ area.city }}, {{ area.state }}</h3>
+	<ul class="items">
+		{% for venue in area.venues %}
+		<li>
+			<a href="/venues/{{ venue.id }}">
+				<i class="fas fa-music"></i>
+				<div class="item">
+					<h5>{{ venue.name }}</h5>
+					<button class="delete-venue" data-id="{{ venue.id }}">&cross;</button>
+				</div>
+			</a>
+		</li>
+		<div id="error" class="hidden">
+			An error occurred, please try again.</div>
+		{% endfor %}
+	</ul>
+{% endfor %}
+<script>
+	deleteBtns = document.querySelectorAll(".delete-venue")
+	for (let i = 0; i < deleteBtns.length; i++) {
+		const btnDelete = deleteBtns[i];
+		btnDelete.onclick = function (e) {
+			console.log("Delete event: ", e);
+			const selectedId = e.target.dataset['id'];
+			fetch('/venues/' + selectedId + '/delete', {
+				method: 'DELETE'
+			}).then(function () {
+				console.log('Parent', e.target);
+				const item = e.target.parentElement;
+				item.remove();
+				document.getElementById("error").className = "hidden";
+				// window.location.reload(true);
+				window.location.href = "/venues";
+			})
+				.catch(function (e) {
+					console.error(e);
+					document.getElementById("error").className = "";
+				});
+		};
+
+	}
+</script>
+
+{% endblock %}
+
+
