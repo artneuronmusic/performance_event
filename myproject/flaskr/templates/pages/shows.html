@@ -13,5 +13,14 @@
         </div>
     </div>
     {% endfor %}
+
 </div>
+{% for num in show_pagination_list %}
+<div class="show-pagination">
+	<ul style="list-style-type:none" >
+		<li class="pagination-number"><a href="/shows?page={{num}}">{{num}}</a></li>
+		
+	</ul>
+</div>
+{% endfor %}
 {% endblock %}

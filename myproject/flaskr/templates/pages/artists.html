@@ -13,4 +13,14 @@
 	</li>
 	{% endfor %}
 </ul>
+{% for num in artist_page_number %}
+<div class="artist-pagination">
+	<ul style="list-style-type:none" >
+		<li class="pagination-number"><a href="/artists?page={{num}}">{{num}}</a></li>
+		
+	</ul>
+</div>
+{% endfor %}
+
+
 {% endblock %}

@@ -1,12 +1,9 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
-from flask_migrate import Migrate
+from flask_login import UserMixin
 
-# app = Flask(__name__)
-# db = SQLAlchemy(app, session_options={"expire_on_commit": False})
-db = SQLAlchemy()
-# TODO: connect to a local postgresql database
-# migrate = Migrate(app, db)
+from . import db
+
 
 
 class Venue(db.Model):
@@ -39,7 +36,6 @@ class Artist(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(120), nullable=False)
     city = db.Column(db.String(120), nullable=False)
-    # city_index = Index(city_index, this.city)
     state = db.Column(db.String(120), nullable=False)
     phone = db.Column(db.String(120), nullable=False)
     genres = db.Column(db.ARRAY(db.String(200)), nullable=False)
@@ -66,4 +62,19 @@ class Show(db.Model):
 
     def __repr__(self):
         return f'{self.artist_id}, {self.venue_id}, {self.start_time}'
+
+
+class User(UserMixin, db.Model):
+    __tablename__ = 'user'
+    id = db.Column(db.Integer, primary_key=True) 
+    email = db.Column(db.String(100))
+    password = db.Column(db.String(100))
+    name = db.Column(db.String(1000))
+
+    def __repr__(self):
+        return f'{self.email}, {self.password}, {self.name}'
+
+
+
+
 

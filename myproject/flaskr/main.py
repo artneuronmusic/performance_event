@@ -1,85 +1,96 @@
-#----------------------------------------------------------------------------#
-# Imports
-#----------------------------------------------------------------------------#
+from . import db
+from flask import (Blueprint, render_template, request, flash, redirect, url_for, abort)
+from flask_login import login_required, current_user
+from . import db
+from flaskr.models import Venue, Artist, Show
+from flaskr.forms import *
 import datetime
-from forms import *
-from logging import Formatter, FileHandler
-import logging
-from models import app, db, Venue, Artist, Show
-from flask_moment import Moment
 import sys
 import json
-import dateutil.parser
-import babel
-from flask import (render_template, request, flash, redirect, url_for, abort)
-import datetime
 import logging
-#----------------------------------------------------------------------------#
-# App Config.
-#----------------------------------------------------------------------------#
-# install dateuntil, babel, flask-moment, flask_wtf
+from logging import Formatter, FileHandler
 
-app.config.from_object('config')
-moment = Moment(app)
-db.init_app(app)
-logging.basicConfig(filename='error.log', level=logging.INFO)
+main = Blueprint('main', __name__)
 
-# # db.create_all()
-# #----------------------------------------------------------------------------#
-# # Filters.
-# #----------------------------------------------------------------------------#
+QUESTIONS_PER_PAGE = 5
 
+def pagination_database(data_amount):
+    n=1
+    new_list= [1]
+    data_total = len(data_amount)
+    while True:
+        data_total = data_total - QUESTIONS_PER_PAGE
+        # print(data_total)
+        n+=1
+        new_list.append(n)
 
-def format_datetime(value, format='medium'):
-    date = dateutil.parser.parse(value)
-    if format == 'full':
-        format = "EEEE MMMM, d, y 'at' h:mma"
-    elif format == 'medium':
-        format = "EE MM, dd, y h:mma"
-    return babel.dates.format_datetime(date, format, locale='en')
+        if data_total <= QUESTIONS_PER_PAGE:
+            break
+    return new_list
 
 
-app.jinja_env.filters['datetime'] = format_datetime
+def paginate_questions(request, selection):
+    page = request.args.get('page', 1, type=int)
+    # page = request.args.get('page', page, type=int)
+    # print(page)
+    start = (page - 1) * QUESTIONS_PER_PAGE
+    end = start + QUESTIONS_PER_PAGE
 
-# #----------------------------------------------------------------------------#
-# # Controllers.
-# #----------------------------------------------------------------------------#
+    questions = [question for question in selection]
+    current_questions = questions[start:end]
+    return current_questions
 
-# # checked
-
-
-@app.route('/')
+@main.route('/')
 def index():
     return render_template('pages/home.html')
 
 # #  Venues
 # #  ----------------------------------------------------------------
 
-
-@ app.route('/venues')
+@main.route('/profile')
+@login_required
+def profile():
+    return render_template('pages/profile.html', name=current_user.name)
+    
+@ main.route('/venues')
+@login_required
 def venues():
-
-    data = []
+    # page = request.args.get('page', 1, type=int)
+    new_data = []
     venue_list = Venue.query.order_by('city').all()
-    location_genre = db.session.query(Venue).distinct(Venue.city).all()
+    location_genre = db.session.query(Venue).distinct('state', 'city').all()
+
     for i in range(len(location_genre)):
         content = []
         city = location_genre[i].city
+
         state = location_genre[i].state
         for a in range(len(venue_list)):
+            # print(a)
             if city == venue_list[a].city and state == venue_list[a].state:
-                print(venue_list[a].city)
+                # print(venue_list[a].city)
                 detail = {"id": venue_list[a].id, "name": venue_list[a].name}
                 content.append(detail)
                 venue_data = {
                     "city": venue_list[a].city,
                     "state": venue_list[a].state,
-                    "venues": content}
-        data.append(venue_data)
-    return render_template('pages/venues.html', areas=data)
+                    "venues": content,
+                    }
+                     
+        new_data.append(venue_data)
+        # data = new_data
+        # print(len(new_data))
+        data = paginate_questions(request, new_data)
+        page_number = pagination_database(venue_list)
+
+     
+        
+    # return render_template('pages/venues.html', areas=data, page_number=pagination_database(data))
+    return render_template('pages/venues.html', areas=data, page_number=page_number)
 
 
-@app.route('/venues/search', methods=['POST'])
+@main.route('/venues/search', methods=['POST'])
+@login_required
 def search_venues():
     research_input = request.form.get('search_term', '')
     search_venue = db.session.query(Venue).filter(Venue.name.ilike(
@@ -103,10 +114,11 @@ def search_venues():
         "data": data
     }
     return render_template('pages/search_venues.html',
-                           results=response, search_term=research_input)
+                        results=response, search_term=research_input)
 
 
-@ app.route('/venues/<int:venue_id>')
+@ main.route('/venues/<int:venue_id>')
+@login_required
 def show_venue(venue_id):
     """_summary_
     Args:
@@ -166,16 +178,18 @@ def show_venue(venue_id):
     return render_template('pages/show_venue.html', venue=data)
 
 
-# # # #  Create Venue
-# # # #  ----------------------------------------------------------------
+    # # # #  Create Venue
+    # # # #  ----------------------------------------------------------------
 
-@ app.route('/venues/create', methods=['GET'])
+@ main.route('/venues/create', methods=['GET'])
+@login_required
 def create_venue_form():
     venue_form = VenueForm()
     return render_template('forms/new_venue.html', form=venue_form)
 
 
-@ app.route('/venues/create', methods=['POST'])
+@ main.route('/venues/create', methods=['POST'])
+@login_required
 def create_venue_submission():
     form = VenueForm(request.form, meta={'csrf': False})
     if form.venue_validate():
@@ -217,12 +231,13 @@ def create_venue_submission():
             message.append(field + ' ' + '|'.join(err))
         flash('Errors ' + str(message))
         flash('An error occurred.' +
-              form.name.data + ' could not be listed.')
+            form.name.data + ' could not be listed.')
         abort(404)
     return render_template('pages/home.html')
 
 
-@app.route('/venues/<int:venue_id>/delete', methods=['DELETE'])
+@main.route('/venues/<int:venue_id>/delete', methods=['DELETE'])
+@login_required
 def delete_venue(venue_id):
     """_summary_
 
@@ -248,7 +263,8 @@ def delete_venue(venue_id):
     return None
 
 
-@app.route('/venues/<int:venue_id>/edit', methods=['GET'])
+@main.route('/venues/<int:venue_id>/edit', methods=['GET'])
+@login_required
 def edit_venue(venue_id):
     """_summary_
 
@@ -266,7 +282,8 @@ def edit_venue(venue_id):
         venue=venue_detail)
 
 
-@app.route('/venues/<int:venue_id>/edit', methods=['POST'])
+@main.route('/venues/<int:venue_id>/edit', methods=['POST'])
+@login_required
 def edit_venue_submission(venue_id):
     """_summary_
 
@@ -307,13 +324,14 @@ def edit_venue_submission(venue_id):
 #     # #  ----------------------------------------------------------------
 
 
-@app.route('/artists/create', methods=['GET'])
+@main.route('/artists/create', methods=['GET'])
+@login_required
 def create_artist_form():
     artist_form = ArtistForm()
     return render_template('forms/new_artist.html', form=artist_form)
 
 
-@app.route('/artists/create', methods=['POST'])
+@main.route('/artists/create', methods=['POST'])
 def create_artist_submission():
     form = ArtistForm(request.form, meta={'csrf': False})
     if form.artist_validate():
@@ -353,7 +371,7 @@ def create_artist_submission():
             message.append(field + ' ' + '|'.join(err))
         flash('Errors ' + str(message))
         flash('An error occurred. Artist ' +
-              form.name.data + ' could not be listed.')
+            form.name.data + ' could not be listed.')
         abort(404)
 
     return render_template('pages/home.html')
@@ -362,19 +380,25 @@ def create_artist_submission():
 # #  ----------------------------------------------------------------
 
 
-@ app.route('/artists')
+@ main.route('/artists')
+@login_required
 def artists():
-    data = []
+    new_data = []
     artist_list = Artist.query.order_by('id').all()
+    print('wow: {}'.format(len(artist_list)))
     for i in artist_list:
         collection = {}
         collection['id'] = i.id
         collection['name'] = i.name
-        data.append(collection)
-    return render_template('pages/artists.html', artists=data)
+        new_data.append(collection)
+    data = paginate_questions(request, new_data)
+    artist_page = pagination_database(artist_list)
+    return render_template('pages/artists.html', artists=data, artist_page_number=artist_page)
+    # return render_template('pages/artists.html', artists=data)
 
 
-@ app.route('/artists/search', methods=['POST'])
+@main.route('/artists/search', methods=['POST'])
+@login_required
 def search_artists():
     research_input = request.form.get('search_term', '')
     search_artist = db.session.query(Artist).filter(
@@ -403,7 +427,8 @@ def search_artists():
         search_term=research_input)
 
 
-@ app.route('/artists/<int:artist_id>', methods=['GET'])
+@main.route('/artists/<int:artist_id>', methods=['GET'])
+@login_required
 def show_artist(artist_id):
     """_summary_
 
@@ -467,7 +492,8 @@ def show_artist(artist_id):
 
 # #  Update
 # #  ----------------------------------------------------------------
-@ app.route('/artists/<int:artist_id>/edit', methods=['GET'])
+@main.route('/artists/<int:artist_id>/edit', methods=['GET'])
+@login_required
 def edit_artist(artist_id):
     """_summary_
 
@@ -485,7 +511,7 @@ def edit_artist(artist_id):
         artist=artist_detail)
 
 
-@ app.route('/artists/<int:artist_id>/edit', methods=['POST'])
+@main.route('/artists/<int:artist_id>/edit', methods=['POST'])
 def edit_artist_submission(artist_id):
     """_summary_
     edit info of specific artist
@@ -517,7 +543,7 @@ def edit_artist_submission(artist_id):
     except BaseException:
         db.session.rollback()
         flash('An error occurred. Artist ' +
-              form.name.data + ' could not be listed.')
+            form.name.data + ' could not be listed.')
         logging.error("Error occired " + str())
         abort(404)
     return redirect(url_for('show_artist', artist_id=artist_id))
@@ -526,9 +552,9 @@ def edit_artist_submission(artist_id):
 # #  ----------------------------------------------------------------
 
 
-@ app.route('/shows')
+@main.route('/shows')
 def shows():
-    data = []
+    new_data = []
     show_info = db.session.query(
         Venue.id,
         Venue.name,
@@ -537,6 +563,7 @@ def shows():
         Artist.image_link,
         Show.start_time).select_from(Show).join(Artist).join(Venue).order_by(
         Show.start_time).all()
+    print(len(show_info))
     for i in range(len(show_info)):
         show_detail = {}
         venue_id, venue_name, artist_id, artist_name, artist_image_link, show_time = show_info[
@@ -547,17 +574,21 @@ def shows():
         show_detail['artist_name'] = artist_name
         show_detail['artist_image_link'] = artist_image_link
         show_detail['start_time'] = str(show_time)
-        data.append(show_detail)
-    return render_template('pages/shows.html', shows=data)
+        new_data.append(show_detail)
+    data = paginate_questions(request, new_data)
+    show_pagination = pagination_database(show_info)
+    return render_template('pages/shows.html', shows=data, show_pagination_list=show_pagination)
 
 
-@ app.route('/shows/create', methods=['GET'])
+@main.route('/shows/create', methods=['GET'])
+@login_required
 def create_shows():
     form = ShowForm()
     return render_template('forms/new_show.html', form=form)
 
 
-@ app.route('/shows/create', methods=['POST'])
+@main.route('/shows/create', methods=['POST'])
+@login_required
 def create_show_submission():
     form = ShowForm(request.form)
     show_artist_id = form.artist_id.data
@@ -579,36 +610,13 @@ def create_show_submission():
     return render_template('pages/home.html')
 
 
-@ app.errorhandler(404)
+
+
+@main.errorhandler(404)
 def not_found_error(error):
     return render_template('errors/404.html'), 404
 
 
-@ app.errorhandler(500)
+@main.errorhandler(500)
 def server_error(error):
     return render_template('errors/500.html'), 500
-
-
-if not app.debug:
-    file_handler = FileHandler('error.log')
-    file_handler.setFormatter(Formatter(
-        '%(asctime)s %(levelname)s: %(message)s [in %(pathname)s:%(lineno)d]'))
-    app.logger.setLevel(logging.INFO)
-    file_handler.setLevel(logging.INFO)
-    app.logger.addHandler(file_handler)
-    app.logger.info('errors')
-
-#----------------------------------------------------------------------------#
-# Launch.
-#----------------------------------------------------------------------------#
-
-# Default port:
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', port=8000, debug=True)
-
-# Or specify port manually:
-'''
-if __name__ == '__main__':
-    port = int(os.environ.get('PORT', 5000))
-    app.run(host='0.0.0.0', port=port)
-'''
