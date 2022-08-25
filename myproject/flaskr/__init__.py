@@ -9,12 +9,15 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
 from flask_migrate import Migrate
-# from flaskr.models import Venue, Artist, Show
+# from flaskr.models import Venue, Artist, Show, roles_user_table
 # from flask_moment import Moment
 import dateutil.parser
-import babel
+# import babel
+from flask_babelex import Babel
+from flask_user import UserManager
 
-# from flask_migrate import Migrate
+
+
 
 #----------------------------------------------------------------------------#
 # App Config.
@@ -23,33 +26,47 @@ import babel
 db = SQLAlchemy()
 
 
+
 def create_app(test_config=None):
     app = Flask(__name__, instance_relative_config=True)
     app.config.from_mapping(
-        SECRET_KEY='dev',
+        SECRET_KEY='devdevdevdevdevdevdevdevdevdevdev',
         SQLALCHEMY_TRACK_MODIFICATIONS=False,
+        # SECURITY_PASSWORD_HASH='sha256',
+        # USER_ENABLE_EMAIL=True,
+        # USER_ENABLE_USERNAME=False,
+        USER_ENABLE_CONFIRM_EMAIL=False,
+        USER_EMAIL_SENDER_EMAIL="test@test.com"
     )
+  
 # Database settings
     app.config["SQLALCHEMY_DATABASE_URI"] =  "postgresql:///fyyur_database"
+    babel = Babel(app)
     db.init_app(app)
+    
+
     with app.app_context():
         db.create_all()
         db.session.commit()
     migrate = Migrate(app, db)
 
+   
     login_manager = LoginManager()
     login_manager.login_view = 'auth.login'
     login_manager.init_app(app)
 
-    from .models import User
+ 
+    from .models import User  
     @login_manager.user_loader
     def load_user(user_id):
         #the user_id is the primary key from data
         return User.query.get(int(user_id))
-  
     
+    global user_manager
+    user_manager=UserManager(app, db, User)
 
- 
+
+
 
     #blueprint for auth routes in app
     from .auth import auth as auth_blueprint
