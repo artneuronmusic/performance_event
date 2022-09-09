@@ -2,9 +2,6 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin
 from . import db
-# from flask_user import current_user, login_required, roles_required, UserManager, UserMixin
-
-
 
 class Venue(db.Model):
     __tablename__ = 'venue'
@@ -75,11 +72,7 @@ class User(db.Model,UserMixin):
 
     def __repr__(self):
         return f'{self.email}, {self.password}, {self.name}'
-    # def get_role(self):
-    #     return self.roles
-    # def is_authenticated(self):
-    #     return True
-
+    
 
 class Role(db.Model):
     __tablename__ = 'roles'

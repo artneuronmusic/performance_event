@@ -1,5 +1,4 @@
 from datetime import datetime
-
 from flask_wtf import Form, FlaskForm
 from wtforms import StringField, SelectField, SelectMultipleField, DateTimeField, BooleanField, ValidationError
 from wtforms.validators import DataRequired, URL, Optional

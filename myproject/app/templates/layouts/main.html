@@ -85,15 +85,7 @@
             <li {% if request.endpoint == 'artists' %} class="active" {% endif %}><a href="{{ url_for('main.artists') }}">Artists</a></li>
 
             <li {% if request.endpoint == 'shows' %} class="active" {% endif %}><a href="{{ url_for('main.shows') }}">Shows</a></li>
-            {% if not current_user.is_authenticated %}
-            <li {% if request.endpoint == 'login' %} class="active" {% endif %}><a href="{{ url_for('auth.login') }}">Login</a></li>
-            {% endif %}
-           
-            <li {% if request.endpoint == 'signup' %} class="active" {% endif %}><a href="{{ url_for('auth.signup') }}">Sign Up</a></li>
-            {% if current_user.is_authenticated %}
-            <li {% if request.endpoint == 'logout' %} class="active" {% endif %}><a href="{{ url_for('auth.logout') }}">Logout</a></li>
-            {% endif %}
-
+            
   
       
           </ul>
