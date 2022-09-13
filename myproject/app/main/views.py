@@ -43,10 +43,11 @@ def index():
 #  Venues
 #  ----------------------------------------------------------------
 
-# @main.route('/profile')
-# # @login_required
-# def profile():
-#     return render_template('pages/profile.html', name=current_user.name)
+@main.route('/profile')
+# @login_required
+def profile():
+    # return render_template('pages/profile.html', name=current_user.name)
+    return render_template('pages/profile.html')
     
 @main.route('/venues')
 # @login_required

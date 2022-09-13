@@ -3,9 +3,9 @@
 # from flask_login import login_user, login_required, logout_user
 # from .models import User, Role, UserRoles
 # from functools import wraps
-# # from flask_user import current_user, login_required, roles_required, UserManager, UserMixin
+
 # from .import db
-# # from .import user_manager
+
 
 
 # # from . import dbq
