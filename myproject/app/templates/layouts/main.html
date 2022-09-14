@@ -85,11 +85,15 @@
             <li {% if request.endpoint == 'artists' %} class="active" {% endif %}><a href="{{ url_for('main.artists') }}">Artists</a></li>
 
             <li {% if request.endpoint == 'shows' %} class="active" {% endif %}><a href="{{ url_for('main.shows') }}">Shows</a></li>
-
-            <li {% if request.endpoint == 'login' %} class="active" {% endif %}><a href="{{ url_for('auth.login_post') }}">Login</a></li>
-
-           
-
+            {% if not current_user.is_authenticated%}
+            <li {% if request.endpoint == 'login' %} class="active" {% endif %}><a href="{{ url_for('auth.login') }}">Login</a></li>
+            {% endif %}
+            {% if current_user.is_authenticated%}
+            <li {% if request.endpoint == 'signup' %} class="active" {% endif %}><a href="{{ url_for('auth.logout') }}">Logout</a></li>
+            {% endif %}
+            {% if not current_user.is_authenticated%}
+            <li {% if request.endpoint == 'signup' %} class="active" {% endif %}><a href="{{ url_for('auth.signup') }}">Signup</a></li>
+            {% endif %}
       
           </ul>
         </div><!--/.nav-collapse -->

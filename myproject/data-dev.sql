@@ -389,9 +389,9 @@ COPY public.show (id, artist_id, venue_id, start_time) FROM stdin;
 --
 
 COPY public.user_roles (user_id, role_id, id) FROM stdin;
-5	1	4
-6	3	5
-7	4	6
+1	1	4
+2	3	5
+3	4	6
 \.
 
 
@@ -400,9 +400,9 @@ COPY public.user_roles (user_id, role_id, id) FROM stdin;
 --
 
 COPY public.users (id, email, password, name) FROM stdin;
-5	admin2022@gmail.com	sha256$qM5O6DBePH3Ld7aN$c8dd8b54baed6dffd8d1a6679fd7a095c27aa79fcee5f94464e739e4c6c8c662	admin
-6	venue2022@gmail.com	sha256$GT2MobnzFqfNHrFB$253e2aba2a977d02aeff8365fc3a7e05d095db8e139267c493fa18aff5da429e	venue
-7	artist2022@gmail.com	sha256$qMklKaiCKlh8PX8o$51271a932af804ec6253e230591246788b8df2ae29f0e8bfbd31ac294ac5dd66	artist
+1	admin2022@gmail.com	sha256$qM5O6DBePH3Ld7aN$c8dd8b54baed6dffd8d1a6679fd7a095c27aa79fcee5f94464e739e4c6c8c662	admin
+2	venue2022@gmail.com	sha256$GT2MobnzFqfNHrFB$253e2aba2a977d02aeff8365fc3a7e05d095db8e139267c493fa18aff5da429e	venue
+3	artist2022@gmail.com	sha256$qMklKaiCKlh8PX8o$51271a932af804ec6253e230591246788b8df2ae29f0e8bfbd31ac294ac5dd66	artist
 \.
 
 

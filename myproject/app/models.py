@@ -2,7 +2,7 @@ from . import db
 from . import login_manager
 from flask_login import UserMixin
 from werkzeug.security import generate_password_hash, check_password_hash
-
+import re
 
 class Venue(db.Model):
     __tablename__ = 'venue'
@@ -74,20 +74,45 @@ class User(db.Model,UserMixin):
     def __repr__(self):
         return f'{self.email}, {self.password}, {self.name}'
 
-    @property
-    def password(self):
-        raise AttributeError('password is not a readable attribute')
+    # @property
+    # def password(self):
+    #     raise AttributeError('password is not a readable attribute')
 
-    @password.setter
-    def password(self, password):
-        self.password_hash = generate_password_hash(password)
+    # @password.setter
+    # def password(self, password):
+    #     self.password_hash = generate_password_hash(password)
 
-    def verify_password(self, password):
-        return check_password_hash(self.password_hash, password)
+    # def verify_password(self, password):
+    #     return check_password_hash(self.password_hash, password)
 
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
+
+    @property
+    def check_pw_validation(self, password):
+        x = True
+        while x:
+            if (len(password)<6 or len(password)>16):
+                break
+            elif not re.search("[a-z]",password):
+                break
+            elif not re.search("[0-9]",password):
+                break
+            elif not re.search("[A-Z]",password):
+                break
+            elif not re.search("[$#@]",password):
+                break
+            elif re.search("\s",password):
+                break
+            else:
+                print("Valid Password")
+                x=False
+                break
+
+        if x:
+            print("Not a Valid Password")
+
 
 
 class Role(db.Model):

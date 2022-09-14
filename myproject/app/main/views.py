@@ -5,6 +5,7 @@ from flask import (render_template, request, flash, redirect, url_for, abort, se
 import datetime
 from .forms import *
 import logging
+from flask_login import current_user
 
 
 QUESTIONS_PER_PAGE = 5
@@ -37,7 +38,6 @@ def paginate_questions(request, selection):
 
 @main.route('/')
 def index():
-    # return "morning"
     return render_template('pages/home.html')
 
 #  Venues
@@ -46,8 +46,8 @@ def index():
 @main.route('/profile')
 # @login_required
 def profile():
-    # return render_template('pages/profile.html', name=current_user.name)
-    return render_template('pages/profile.html')
+   return render_template('pages/profile.html', name=current_user.name)
+   
     
 @main.route('/venues')
 # @login_required
