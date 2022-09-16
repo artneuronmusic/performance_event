@@ -2,10 +2,12 @@ from . import main
 from .. import db
 from ..models import Venue, Artist, Show
 from flask import (render_template, request, flash, redirect, url_for, abort, session)
+from flask_login import current_user, login_required
 import datetime
 from .forms import *
 import logging
-from flask_login import current_user, login_required
+from ..auth.views import role_required
+
 
 
 QUESTIONS_PER_PAGE = 5
@@ -27,8 +29,6 @@ def pagination_database(data_amount):
 
 def paginate_questions(request, selection):
     page = request.args.get('page', 1, type=int)
-    # page = request.args.get('page', page, type=int)
-    # print(page)
     start = (page - 1) * QUESTIONS_PER_PAGE
     end = start + QUESTIONS_PER_PAGE
 
@@ -51,7 +51,7 @@ def profile():
     
 @main.route('/venues')
 @login_required
-# @role_required(roles=['ADMIN', 'VENUES', 'ARTIST'])
+@role_required(roles=['ADMIN', 'VENUES', 'ARTIST'])
 def venues():
     print(session)
     # page = request.args.get('page', 1, type=int)
@@ -90,7 +90,7 @@ def venues():
 
 @main.route('/venues/search', methods=['POST'])
 @login_required
-# @role_required(roles=['ADMIN', 'VENUE', 'ARTIST'])
+@role_required(roles=['ADMIN', 'VENUE', 'ARTIST'])
 def search_venues():
     research_input = request.form.get('search_term', '')
     search_venue = db.session.query(Venue).filter(Venue.name.ilike(
@@ -192,7 +192,7 @@ def create_venue_form():
 
 @ main.route('/venues/create', methods=['POST'])
 @login_required
-# @role_required(roles=['ADMIN', 'VENUE'])
+@role_required(roles=['ADMIN', 'VENUE'])
 def create_venue_submission():
     form = VenueForm(request.form, meta={'csrf': False})
     if form.venue_validate():
@@ -241,7 +241,7 @@ def create_venue_submission():
 
 @main.route('/venues/<int:venue_id>/delete', methods=['DELETE'])
 @login_required
-# @role_required(roles=['ADMIN', 'VENUE'])
+@role_required(roles=['ADMIN', 'VENUE'])
 def delete_venue(venue_id):
     """_summary_
 
@@ -269,7 +269,7 @@ def delete_venue(venue_id):
 
 @main.route('/venues/<int:venue_id>/edit', methods=['GET'])
 @login_required
-# @role_required(roles=['ADMIN', 'VENUE'])
+@role_required(roles=['ADMIN', 'VENUE'])
 def edit_venue(venue_id):
     """_summary_
 
@@ -289,7 +289,7 @@ def edit_venue(venue_id):
 
 @main.route('/venues/<int:venue_id>/edit', methods=['POST'])
 @login_required
-# @role_required(roles=['ADMIN', 'VENUE'])
+@role_required(roles=['ADMIN', 'VENUE'])
 def edit_venue_submission(venue_id):
     """_summary_
 
@@ -332,7 +332,7 @@ def edit_venue_submission(venue_id):
 
 @main.route('/artists/create', methods=['GET'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def create_artist_form():
     artist_form = ArtistForm()
     return render_template('forms/new_artist.html', form=artist_form)
@@ -340,7 +340,7 @@ def create_artist_form():
 
 @main.route('/artists/create', methods=['POST'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def create_artist_submission():
     form = ArtistForm(request.form, meta={'csrf': False})
     if form.artist_validate():
@@ -391,7 +391,7 @@ def create_artist_submission():
 
 @ main.route('/artists')
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def artists():
     new_data = []
     artist_list = Artist.query.order_by('id').all()
@@ -409,7 +409,7 @@ def artists():
 
 @main.route('/artists/search', methods=['POST'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def search_artists():
     research_input = request.form.get('search_term', '')
     search_artist = db.session.query(Artist).filter(
@@ -440,7 +440,7 @@ def search_artists():
 
 @main.route('/artists/<int:artist_id>', methods=['GET'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def show_artist(artist_id):
     """_summary_
 
@@ -506,7 +506,7 @@ def show_artist(artist_id):
 # #  ----------------------------------------------------------------
 @main.route('/artists/<int:artist_id>/edit', methods=['GET'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def edit_artist(artist_id):
     """_summary_
 
@@ -526,7 +526,7 @@ def edit_artist(artist_id):
 
 @main.route('/artists/<int:artist_id>/edit', methods=['POST'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST'])
+@role_required(roles=['ADMIN', 'ARTIST'])
 def edit_artist_submission(artist_id):
     """_summary_
     edit info of specific artist
@@ -598,15 +598,15 @@ def shows():
 
 @main.route('/shows/create', methods=['GET'])
 @login_required
-# @role_required(roles=['ADMIN', 'ARTIST', 'VENUE'])
+@role_required(roles=['ADMIN', 'ARTIST', 'VENUE'])
 def create_shows():
     form = ShowForm()
     return render_template('forms/new_show.html', form=form)
 
 
 @main.route('/shows/create', methods=['POST'])
-# @login_required
-# @role_required(roles=['ADMIN', 'ARTIST', 'VENUE'])
+@login_required
+@role_required(roles=['ADMIN', 'ARTIST', 'VENUE'])
 def create_show_submission():
     form = ShowForm(request.form)
     show_artist_id = form.artist_id.data
