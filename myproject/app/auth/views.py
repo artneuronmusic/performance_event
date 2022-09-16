@@ -1,10 +1,11 @@
 from flask import (render_template, redirect, url_for,  request, flash, session)
 from flask_login import login_user, logout_user, current_user, login_required
+from functools import wraps
 from werkzeug.security import check_password_hash, generate_password_hash
 from . import auth
 from .check_validation import validate_password, validate_name, validate_email
 from ..email import send_email
-from .. models import User, Role
+from .. models import User, Role, UserRoles
 from app import db
 
 
@@ -126,6 +127,31 @@ def signup_post():
 
 
 
+def role_required(roles):
+        """
+        see: https://flask.palletsprojects.com/en/2.1.x/patterns/viewdecorators/
+        """
+        def wrapper(fn):
+            @wraps(fn)
+            def decorated_view(*args, **kwargs):
+                # if not current_user.is_authenticated():
+                #     return redirect(url_for('auth.login', message="sorry, u are not logged in."))
+                session_id=session['_user_id']
+                print(session_id)
+                new =[]  
+                role_info = db.session.query(Role.name).select_from(UserRoles).join(Role).filter(UserRoles.user_id==session_id).all()
+           
+                for i in range(len(role_info)):
+                    new=role_info[i][0]
+                print(str(new))
+           
+                if not new in roles:    
+                        flash('Sorry, this page requires permission') 
+                        return redirect(url_for('auth.login', message="sorry, you dont have right to access it."))
+                
+                return fn(*args, **kwargs)
+            return decorated_view
+        return wrapper
 
 
 
