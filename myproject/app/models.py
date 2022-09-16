@@ -1,8 +1,11 @@
+import re
 from . import db
 from . import login_manager
+from flask import current_app
 from flask_login import UserMixin
-from werkzeug.security import generate_password_hash, check_password_hash
-import re
+from itsdangerous import TimedJSONWebSignatureSerializer as Serializer
+from wtforms import ValidationError
+# from werkzeug.security import generate_password_hash, check_password_hash
 
 class Venue(db.Model):
     __tablename__ = 'venue'
@@ -69,10 +72,27 @@ class User(db.Model,UserMixin):
     password = db.Column(db.String(255), nullable=False)
     name = db.Column(db.String(100), nullable=False)
     roles = db.relationship('Role', secondary='user_roles', backref='user', lazy=True)
-    #role = db.relationship('Role', secondary='user_roles', backref='user', lazy=True)
+    confirmed = db.Column(db.Boolean, default=False)
 
     def __repr__(self):
         return f'{self.email}, {self.password}, {self.name}'
+
+    def generate_confirmation_token(self, expiration=60):
+        s = Serializer(current_app.config['SECRET_KEY'], expiration)
+        print(self.id)
+        return s.dumps({'confirm': self.id}).decode('utf-8')
+
+    def confirm_account(self, token):
+        s=Serializer(current_app.config['SECRET_KEY'])
+        try:
+            data = s.loads(token.encode('utf-8'))      
+        except:
+            return False
+        if data.get('confirm') != self.id:
+            return False
+        self.confirmed = True
+        db.session.add(self)
+        return True
 
     # @property
     # def password(self):
@@ -88,32 +108,6 @@ class User(db.Model,UserMixin):
     @login_manager.user_loader
     def load_user(user_id):
         return User.query.get(int(user_id))
-
-    @property
-    def check_pw_validation(self, password):
-        x = True
-        while x:
-            if (len(password)<6 or len(password)>16):
-                break
-            elif not re.search("[a-z]",password):
-                break
-            elif not re.search("[0-9]",password):
-                break
-            elif not re.search("[A-Z]",password):
-                break
-            elif not re.search("[$#@]",password):
-                break
-            elif re.search("\s",password):
-                break
-            else:
-                print("Valid Password")
-                x=False
-                break
-
-        if x:
-            print("Not a Valid Password")
-
-
 
 class Role(db.Model):
     __tablename__ = 'roles'

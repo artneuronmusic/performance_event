@@ -1,7 +1,6 @@
 import re
 
 
-
 def validate_password(password):
     x = True
     while x:
@@ -20,7 +19,6 @@ def validate_password(password):
         else:           
             # print("Valid Password")
             x=False
-            
             return "valid"
     if x:
         return "invalid"
@@ -28,11 +26,9 @@ def validate_password(password):
 def validate_name(name):
     regex = r'[A-Za-z0-9]{6,50}'
     if(re.fullmatch(regex, name)):
-        print("Valid Name")
         return "valid"
  
     else:
-        print("Invalid Name")
         return "invalid"
 
   
@@ -40,12 +36,8 @@ def validate_name(name):
 def validate_email(email):
     regex = r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'
     if(re.fullmatch(regex, email)):
-        print("Valid Email")
-
         return "valid"
  
     else:
         print("Invalid Email")
         return "invalid"
-
-print(validate_name("ilove34L"))
